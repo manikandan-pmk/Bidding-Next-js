@@ -78,5 +78,13 @@ export async function POST(req: NextRequest) {
     });
 
     return Response;
-  } catch (err: any) {}
+  } catch (err: any) {
+    console.log(err.message);
+    return NextResponse.json({
+      error:true,
+      message:"Server Error , Unable to Login"
+    },{
+      status:500
+    })
+  }
 }

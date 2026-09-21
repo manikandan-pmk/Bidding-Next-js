@@ -20,7 +20,9 @@ export function middleware(req: NextRequest) {
     const secret = process.env.JWT_SECRET;
 
 
-    const decoded = jwt.verify(token, secret!);
+    const decoded = jwt.verify(token, secret!) as { id: string; email: string; name: string; role: string };
+
+    const id = decoded.id;
 
     console.log("Authenticated user:", decoded);
 
@@ -40,3 +42,5 @@ export function middleware(req: NextRequest) {
     );
   }
 }
+
+export default middleware;
