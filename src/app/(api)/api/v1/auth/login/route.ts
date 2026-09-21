@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import DBConnect from "@/lib/database";
+import dbConnect from "@/lib/database";
 import { Admin } from "@/entities/admin";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
@@ -20,7 +20,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const db = await DBConnect();
+    if (!dbConnect.isInitialized) {
+      await dbConnect.initialize();
+    }
+
+    const db = dbConnect;
     const AdminRepo = db.getRepository(Admin);
 
     const User = await AdminRepo.findOne({
@@ -74,7 +78,5 @@ export async function POST(req: NextRequest) {
     });
 
     return Response;
-
-
   } catch (err: any) {}
-};
+}

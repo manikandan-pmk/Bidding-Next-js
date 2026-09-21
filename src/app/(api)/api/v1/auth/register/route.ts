@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import DBConnect from "@/lib/database";
+import dbConnect from "@/lib/database";
 import { Admin } from "@/entities/admin";
 
 export const POST = async (req: NextRequest) => {
@@ -34,9 +34,12 @@ export const POST = async (req: NextRequest) => {
     }
 
     // 3. Connect database
-    const dataSource = await DBConnect();
+    if (!dbConnect.isInitialized) {
+  await dbConnect.initialize();
+}
 
-    const adminRepo = dataSource.getRepository(Admin);
+const db = dbConnect;
+const adminRepo = db.getRepository(Admin);
 
     // 4. Check existing email
     const existingAdmin = await adminRepo.findOne({

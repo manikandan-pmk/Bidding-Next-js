@@ -1,32 +1,33 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export default function AdminAuthPage() {
   const router = useRouter();
 
   const [isRegister, setIsRegister] = useState(false);
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
       const endpoint = isRegister
-        ? '/api/v1/auth/register'
-        : '/api/v1/auth/login';
+        ? "/api/v1/auth/register"
+        : "/api/v1/auth/login";
 
       const body = isRegister
         ? {
@@ -39,30 +40,25 @@ export default function AdminAuthPage() {
             password,
           };
 
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
+      const res = await axios.post(endpoint, body);
 
-      const data = await res.json();
+      const data = res.data;
 
-      if (!res.ok) {
-        throw new Error(
-          data.message || data.error || 'Something went wrong'
-        );
+      console.log(data);
+
+      // Success
+      if (data.error) {
+        throw new Error(data.message || data.error || "Something went wrong");
       }
 
       // REGISTER SUCCESS
       if (isRegister) {
-        setSuccess('Registration successful. Please sign in.');
+        setSuccess("Registration successful. Please sign in.");
 
         // Clear register fields
-        setName('');
-        setEmail('');
-        setPassword('');
+        setName("");
+        setEmail("");
+        setPassword("");
 
         // Switch to login
         setIsRegister(false);
@@ -71,14 +67,10 @@ export default function AdminAuthPage() {
       }
 
       // LOGIN SUCCESS
-      router.push('/');
+      router.push("/");
       router.refresh();
     } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Something went wrong'
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -87,36 +79,32 @@ export default function AdminAuthPage() {
   function switchMode() {
     setIsRegister(!isRegister);
 
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
-    setName('');
-    setEmail('');
-    setPassword('');
+    setName("");
+    setEmail("");
+    setPassword("");
   }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-white px-4">
-
       <div className="w-full max-w-md bg-blue-400 rounded-3xl p-8 shadow-2xl shadow-blue-500/25 border border-blue-500">
-
         {/* Header */}
         <div className="mb-8 text-center">
-
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/15 border border-white/25 text-white font-bold text-xl mb-3 shadow-sm">
             A
           </div>
 
           <h1 className="text-2xl font-bold text-white tracking-tight">
-            {isRegister ? 'Create Account' : 'Admin Portal'}
+            {isRegister ? "Create Account" : "Admin Portal"}
           </h1>
 
           <p className="text-sm text-blue-100 mt-1">
             {isRegister
-              ? 'Create your admin account'
-              : 'Sign in to manage api.domain.com'}
+              ? "Create your admin account"
+              : "Sign in to manage api.domain.com"}
           </p>
-
         </div>
 
         {/* Error */}
@@ -135,7 +123,6 @@ export default function AdminAuthPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-
           {/* Name - Register only */}
           {isRegister && (
             <div>
@@ -195,22 +182,18 @@ export default function AdminAuthPage() {
           >
             {loading
               ? isRegister
-                ? 'Creating Account...'
-                : 'Verifying...'
+                ? "Creating Account..."
+                : "Verifying..."
               : isRegister
-                ? 'Create Account'
-                : 'Sign In'}
+                ? "Create Account"
+                : "Sign In"}
           </button>
-
         </form>
 
         {/* Switch Login/Register */}
         <div className="mt-6 text-center">
-
           <p className="text-sm text-blue-100">
-            {isRegister
-              ? 'Already have an account?'
-              : "Don't have an account?"}
+            {isRegister ? "Already have an account?" : "Don't have an account?"}
           </p>
 
           <button
@@ -218,13 +201,9 @@ export default function AdminAuthPage() {
             onClick={switchMode}
             className="mt-1 text-white font-semibold hover:underline"
           >
-            {isRegister
-              ? 'Sign in'
-              : 'Create an account'}
+            {isRegister ? "Sign in" : "Create an account"}
           </button>
-
         </div>
-
       </div>
     </div>
   );
