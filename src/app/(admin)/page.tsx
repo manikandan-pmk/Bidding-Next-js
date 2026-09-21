@@ -67,7 +67,7 @@ export default function AdminAuthPage() {
       }
 
       // LOGIN SUCCESS
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
