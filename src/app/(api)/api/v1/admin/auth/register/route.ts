@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import dbConnect from "@/lib/database";
-import { Admin } from "@/entities/admin";
+import {AdminRepo} from "@/lib/repository"
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -33,16 +32,9 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // 3. Connect database
-    if (!dbConnect.isInitialized) {
-  await dbConnect.initialize();
-}
-
-const db = dbConnect;
-const adminRepo = db.getRepository(Admin);
-
+    
     // 4. Check existing email
-    const existingAdmin = await adminRepo.findOne({
+    const existingAdmin = await AdminRepo.findOne({
       where: {
         email: email.toLowerCase(),
       },
@@ -64,14 +56,14 @@ const adminRepo = db.getRepository(Admin);
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // 6. Create admin
-    const admin = adminRepo.create({
+    const admin = AdminRepo.create({
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
     });
 
     // 7. Save admin
-    const savedAdmin = await adminRepo.save(admin);
+    const savedAdmin = await AdminRepo.save(admin);
 
     // 8. Remove password from response
     const { password: _, ...adminData } = savedAdmin;

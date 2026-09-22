@@ -1,77 +1,123 @@
-import { NextRequest, NextResponse } from "next/server";
+ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
+const PUBLIC_PATHS = [
+  "/api/v1/admin/auth/login",
+  "/api/v1/admin/auth/register",
+  "/api/v1/user/auth/register",
+  "/api/v1/user/auth/login",
+];
+
+const origin = process.env.ALLOWED_ORIGIN!;
+
+function setCorsHeaders(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", origin);
+  response.headers.set("Access-Control-Allow-Credentials", "true");
+  response.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+  );
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  return response;
+}
+
 export async function middleware(req: NextRequest) {
+  if (req.method === "OPTIONS") {
+    return setCorsHeaders(new NextResponse(null, { status: 204 }));
+  }
+
   try {
-    const token = req.cookies.get("token")?.value;
+    const { pathname } = req.nextUrl;
+
+    const isPublicPath = PUBLIC_PATHS.some((path) =>
+      pathname.startsWith(path)
+    );
+
+    if (isPublicPath) {
+      return setCorsHeaders(NextResponse.next());
+    }
+
+    const isAdminRoute = pathname.startsWith("/api/v1/admin");
+    const isUserRoute = pathname.startsWith("/api/v1/user");
+
+    if (!isAdminRoute && !isUserRoute) {
+      return setCorsHeaders(NextResponse.next());
+    }
+
+    const cookieName = isAdminRoute ? "token" : "user_token";
+    const token = req.cookies.get(cookieName)?.value;
 
     if (!token) {
-      return NextResponse.json(
-        {
-          error: true,
-          message: "Token not found",
-        },
-        {
-          status: 401,
-        }
+      return setCorsHeaders(
+        NextResponse.json(
+          { error: true, message: "Token not found" },
+          { status: 401 }
+        )
       );
     }
 
     const secret = process.env.JWT_SECRET;
 
     if (!secret) {
-      return NextResponse.json(
-        {
-          error: true,
-          message: "JWT_SECRET not configured",
-        },
-        {
-          status: 500,
-        }
+      return setCorsHeaders(
+        NextResponse.json(
+          { error: true, message: "JWT_SECRET not configured" },
+          { status: 500 }
+        )
       );
     }
 
     const secretKey = new TextEncoder().encode(secret);
-
     const { payload } = await jwtVerify(token, secretKey);
-
-    console.log("Authenticated user:", payload);
 
     const requestHeaders = new Headers(req.headers);
 
-    requestHeaders.set(
-      "admin",
-      JSON.stringify({
-        id: payload.id,
-        email: payload.email,
-        name: payload.name,
-        role: payload.role,
-      })
-    );
+    if (isAdminRoute) {
+      requestHeaders.set(
+        "admin",
+        JSON.stringify({
+          id: payload.id,
+          email: payload.email,
+          name: payload.name,
+          role: payload.role,
+        })
+      );
+    }
 
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
+    if (isUserRoute) {
+      requestHeaders.set(
+        "user",
+        JSON.stringify({
+          id: payload.id,
+          email: payload.email,
+          name: payload.name,
+          role: payload.role,
+        })
+      );
+    }
+
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
     });
 
+    return setCorsHeaders(response);
   } catch (err: any) {
     console.log("Middleware error:", err.message);
 
-    return NextResponse.json(
-      {
-        error: true,
-        message: "Invalid or expired token",
-      },
-      {
-        status: 401,
-      }
+    return setCorsHeaders(
+      NextResponse.json(
+        { error: true, message: "Invalid or expired token" },
+        { status: 401 }
+      )
     );
   }
 }
 
 export const config = {
-  matcher: ["/api/v1/admin/:path*"],
+  matcher: ["/api/v1/:path*"],
 };
 
 export default middleware;

@@ -26,8 +26,8 @@ export default function AdminAuthPage() {
 
     try {
       const endpoint = isRegister
-        ? "/api/v1/auth/register"
-        : "/api/v1/auth/login";
+        ? "/api/v1/admin/auth/register"
+        : "/api/v1/admin/auth/login";
 
       const body = isRegister
         ? {

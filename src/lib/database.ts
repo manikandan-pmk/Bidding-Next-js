@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { Admin } from "@/entities/admin";
+import { User } from "@/entities/user";
 
 const dbConnect = new DataSource({
   type: "mysql",
@@ -10,7 +11,7 @@ const dbConnect = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
 
-  entities: [Admin],
+  entities: [Admin, User],
 
   synchronize: true,
   logging: true,
