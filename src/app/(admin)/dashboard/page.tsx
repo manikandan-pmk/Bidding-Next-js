@@ -3,33 +3,161 @@
 
 import {
   LayoutDashboard,
-  Users,
   Gavel,
-  DollarSign,
-  Bell,
-  Settings,
-  LogOut,
+  Ticket,
+  Users,
+  CreditCard,
+  Image,
+  ChevronDown,
+  ChevronRight,
   Menu,
+  LogOut,
   Search,
-  TrendingUp,
-  Clock,
+  Bell,
+  Loader2,
 } from "lucide-react";
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+
+interface Admin {
+  id: number | string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+interface DashboardStats {
+  totalBids: number;
+  totalLuckyDrawEvents: number;
+  totalBiddingUsers: number;
+  totalPayments: number;
+}
 
 export default function DashboardPage() {
+  const router = useRouter();
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [biddingOpen, setBiddingOpen] = useState(false);
+  const [luckyDrawOpen, setLuckyDrawOpen] = useState(false);
+
+  const [admin, setAdmin] = useState<Admin | null>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+
+  const [loadingAdmin, setLoadingAdmin] = useState(true);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+ 
+ 
+
+  // --------------------------------------------------
+  // Fetch Admin Details
+  // --------------------------------------------------
+
+  useEffect(() => {
+    const fetchAdmin = async () => {
+      try {
+        setLoadingAdmin(true);
+
+        const response = await axios.get("api/v1/admin", {
+         withCredentials:true
+         
+        });
+
+        const data = await response.data;
+
+        if (!data) {
+          throw new Error(data?.message || "Unable to fetch admin");
+        }
+
+        setAdmin(data?.data || data);
+      } catch (error) {
+        console.error("Fetch admin error:", error);
+      } finally {
+        setLoadingAdmin(false);
+      }
+    };
+
+    fetchAdmin();
+  }, []);
+
+  // --------------------------------------------------
+  // Fetch Dashboard Statistics
+  // --------------------------------------------------
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        setLoadingStats(true);
+
+        const response = await fetch("", {
+          method: "GET",
+          credentials: "include",
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.message || "Unable to fetch dashboard data"
+          );
+        }
+
+        setStats(data?.data || data);
+      } catch (error) {
+        console.error("Dashboard stats error:", error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchDashboardStats();
+  }, []);
+
+  // --------------------------------------------------
+  // Logout
+  // --------------------------------------------------
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/v1/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  // --------------------------------------------------
+  // Sidebar Item
+  // --------------------------------------------------
+
+  const sidebarItem =
+    "flex w-full items-center gap-3 rounded-lg px-3 py-3 text-gray-300 transition hover:bg-gray-800";
+
+  const childItem =
+    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 pl-11 text-sm text-gray-400 transition hover:bg-gray-800 hover:text-white";
 
   return (
     <div className="flex min-h-screen bg-gray-100">
 
-      {/* Sidebar */}
+      {/* =====================================================
+          SIDEBAR
+      ====================================================== */}
+
       <aside
         className={`${
           sidebarOpen ? "w-64" : "w-20"
         } fixed left-0 top-0 z-40 h-screen bg-gray-900 text-white transition-all duration-300`}
       >
+
         {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b border-gray-700 px-4">
+
           {sidebarOpen && (
             <h1 className="text-xl font-bold">
               Admin Panel
@@ -47,57 +175,195 @@ export default function DashboardPage() {
         {/* Navigation */}
         <nav className="mt-6 space-y-2 px-3">
 
-          <a
-            href="/dashboard"
-            className="flex items-center gap-3 rounded-lg bg-blue-600 px-3 py-3"
+          {/* Dashboard */}
+          <button
+            onClick={() => router.push("/dashboard")}
+            className={`${sidebarItem} ${
+              sidebarOpen ? "" : "justify-center"
+            }`}
           >
             <LayoutDashboard size={20} />
-            {sidebarOpen && <span>Dashboard</span>}
-          </a>
 
-          <a
-            href="/dashboard/users"
-            className="flex items-center gap-3 rounded-lg px-3 py-3 text-gray-300 hover:bg-gray-800"
-          >
-            <Users size={20} />
-            {sidebarOpen && <span>Users</span>}
-          </a>
+            {sidebarOpen && (
+              <span>Dashboard</span>
+            )}
+          </button>
 
-          <a
-            href="/dashboard/auctions"
-            className="flex items-center gap-3 rounded-lg px-3 py-3 text-gray-300 hover:bg-gray-800"
-          >
-            <Gavel size={20} />
-            {sidebarOpen && <span>Auctions</span>}
-          </a>
+          {/* =================================================
+              BIDDING
+          ================================================== */}
 
-          <a
-            href="/dashboard/payments"
-            className="flex items-center gap-3 rounded-lg px-3 py-3 text-gray-300 hover:bg-gray-800"
-          >
-            <DollarSign size={20} />
-            {sidebarOpen && <span>Payments</span>}
-          </a>
+          <div>
 
-          <a
-            href="/dashboard/settings"
-            className="flex items-center gap-3 rounded-lg px-3 py-3 text-gray-300 hover:bg-gray-800"
-          >
-            <Settings size={20} />
-            {sidebarOpen && <span>Settings</span>}
-          </a>
+            <button
+              onClick={() => setBiddingOpen(!biddingOpen)}
+              className={`${sidebarItem} ${
+                sidebarOpen ? "" : "justify-center"
+              }`}
+            >
+
+              <Gavel size={20} />
+
+              {sidebarOpen && (
+                <>
+                  <span className="flex-1 text-left">
+                    Bidding
+                  </span>
+
+                  {biddingOpen ? (
+                    <ChevronDown size={17} />
+                  ) : (
+                    <ChevronRight size={17} />
+                  )}
+                </>
+              )}
+            </button>
+
+            {/* Bidding Children */}
+            {sidebarOpen && biddingOpen && (
+              <div className="mt-1 space-y-1">
+
+                <button
+                  onClick={() =>
+                    router.push("/dashboard/bidding")
+                  }
+                  className={childItem}
+                >
+                  <Gavel size={17} />
+                  Biddings
+                </button>
+
+                <button
+                  onClick={() =>
+                    router.push("/dashboard/bidding-round")
+                  }
+                  className={childItem}
+                >
+                  <Ticket size={17} />
+                  Bidding Round
+                </button>
+
+                <button
+                  onClick={() =>
+                    router.push("/dashboard/bidding-user-payment")
+                  }
+                  className={childItem}
+                >
+                  <CreditCard size={17} />
+                  Bidding User Payment
+                </button>
+
+                <button
+                  onClick={() =>
+                    router.push("/dashboard/bidding-participants")
+                  }
+                  className={childItem}
+                >
+                  <Users size={17} />
+                  Bidding Participants
+                </button>
+
+                <button
+                  onClick={() =>
+                    router.push(
+                      "/dashboard/bidding-participant-payment"
+                    )
+                  }
+                  className={childItem}
+                >
+                  <CreditCard size={17} />
+                  Bidding Participant Payment
+                </button>
+
+              </div>
+            )}
+
+          </div>
+
+          {/* =================================================
+              LUCKY DRAW
+          ================================================== */}
+
+          <div>
+
+            <button
+              onClick={() => setLuckyDrawOpen(!luckyDrawOpen)}
+              className={`${sidebarItem} ${
+                sidebarOpen ? "" : "justify-center"
+              }`}
+            >
+
+              <Ticket size={20} />
+
+              {sidebarOpen && (
+                <>
+                  <span className="flex-1 text-left">
+                    Lucky Draw
+                  </span>
+
+                  {luckyDrawOpen ? (
+                    <ChevronDown size={17} />
+                  ) : (
+                    <ChevronRight size={17} />
+                  )}
+                </>
+              )}
+
+            </button>
+
+            {/* Lucky Draw Children */}
+            {sidebarOpen && luckyDrawOpen && (
+              <div className="mt-1 space-y-1">
+
+                <button
+                  onClick={() =>
+                    router.push("/dashboard/lucky-draw")
+                  }
+                  className={childItem}
+                >
+                  <Ticket size={17} />
+                  Lucky Draw
+                </button>
+
+                <button
+                  onClick={() =>
+                    router.push("/dashboard/lucky-draw-image")
+                  }
+                  className={childItem}
+                >
+                  <Image size={17} />
+                  Lucky Draw Image
+                </button>
+
+              </div>
+            )}
+
+          </div>
+
         </nav>
 
         {/* Logout */}
         <div className="absolute bottom-5 w-full px-3">
-          <button className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-red-400 hover:bg-gray-800">
+
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-red-400 hover:bg-gray-800"
+          >
             <LogOut size={20} />
-            {sidebarOpen && <span>Logout</span>}
+
+            {sidebarOpen && (
+              <span>Logout</span>
+            )}
           </button>
+
         </div>
+
       </aside>
 
-      {/* Main */}
+      {/* =====================================================
+          MAIN CONTENT
+      ====================================================== */}
+
       <main
         className={`${
           sidebarOpen ? "ml-64" : "ml-20"
@@ -111,8 +377,10 @@ export default function DashboardPage() {
             <h2 className="text-xl font-semibold text-gray-800">
               Dashboard
             </h2>
+
             <p className="text-sm text-gray-500">
-              Welcome back, Admin
+              Welcome back
+              {admin?.name ? `, ${admin.name}` : ""}
             </p>
           </div>
 
@@ -120,13 +388,18 @@ export default function DashboardPage() {
 
             {/* Search */}
             <div className="hidden items-center rounded-lg border bg-gray-50 px-3 md:flex">
-              <Search size={18} className="text-gray-400" />
+
+              <Search
+                size={18}
+                className="text-gray-400"
+              />
 
               <input
                 type="text"
                 placeholder="Search..."
                 className="w-40 bg-transparent px-2 py-2 text-sm outline-none"
               />
+
             </div>
 
             {/* Notification */}
@@ -136,282 +409,274 @@ export default function DashboardPage() {
               <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
             </button>
 
-            {/* Profile */}
+            {/* Admin Profile */}
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
-                A
-              </div>
 
-              <div className="hidden sm:block">
-                <p className="text-sm font-medium">
-                  Admin
-                </p>
+              {loadingAdmin ? (
+                <Loader2
+                  size={20}
+                  className="animate-spin text-gray-500"
+                />
+              ) : (
+                <>
+                  {admin?.profileImage ? (
+                    <img
+                      src={admin.profileImage}
+                      alt={admin.name}
+                      className="h-9 w-9 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
+                      {admin?.name
+                        ? admin.name.charAt(0).toUpperCase()
+                        : "A"}
+                    </div>
+                  )}
 
-                <p className="text-xs text-gray-500">
-                  Administrator
-                </p>
-              </div>
+                  <div className="hidden sm:block">
+
+                    <p className="text-sm font-medium text-gray-800">
+                      {admin?.name || "Loading..."}
+                    </p>
+
+                    <p className="text-xs text-gray-500">
+                      {admin?.role || ""}
+                    </p>
+
+                  </div>
+                </>
+              )}
+
             </div>
 
           </div>
+
         </header>
 
-        {/* Dashboard Content */}
+        {/* =====================================================
+            DASHBOARD CONTENT
+        ====================================================== */}
+
         <section className="p-6">
 
-          {/* Stats */}
+          <div className="mb-6">
+
+            <h1 className="text-2xl font-bold text-gray-800">
+              Dashboard
+            </h1>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Overview of your bidding and lucky draw system.
+            </p>
+
+          </div>
+
+          {/* =================================================
+              STATISTICS
+          ================================================== */}
+
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
-            {/* Users */}
+            {/* Total Bids */}
             <div className="rounded-xl bg-white p-5 shadow-sm">
+
               <div className="flex items-center justify-between">
+
                 <div className="rounded-lg bg-blue-100 p-3 text-blue-600">
-                  <Users size={22} />
-                </div>
-
-                <span className="flex items-center gap-1 text-sm text-green-600">
-                  <TrendingUp size={15} />
-                  12.5%
-                </span>
-              </div>
-
-              <p className="mt-4 text-sm text-gray-500">
-                Total Users
-              </p>
-
-              <h3 className="mt-1 text-2xl font-bold">
-                1,248
-              </h3>
-            </div>
-
-            {/* Auctions */}
-            <div className="rounded-xl bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="rounded-lg bg-purple-100 p-3 text-purple-600">
                   <Gavel size={22} />
                 </div>
 
-                <span className="text-sm text-green-600">
-                  +8.2%
-                </span>
               </div>
 
               <p className="mt-4 text-sm text-gray-500">
-                Total Auctions
+                Total Bids
               </p>
 
-              <h3 className="mt-1 text-2xl font-bold">
-                356
+              <h3 className="mt-1 text-2xl font-bold text-gray-800">
+
+                {loadingStats ? (
+                  <Loader2
+                    size={22}
+                    className="animate-spin"
+                  />
+                ) : (
+                  stats?.totalBids ?? 0
+                )}
+
               </h3>
+
             </div>
 
-            {/* Revenue */}
+            {/* Lucky Draw Events */}
             <div className="rounded-xl bg-white p-5 shadow-sm">
+
               <div className="flex items-center justify-between">
+
+                <div className="rounded-lg bg-purple-100 p-3 text-purple-600">
+                  <Ticket size={22} />
+                </div>
+
+              </div>
+
+              <p className="mt-4 text-sm text-gray-500">
+                Lucky Draw Events
+              </p>
+
+              <h3 className="mt-1 text-2xl font-bold text-gray-800">
+
+                {loadingStats ? (
+                  <Loader2
+                    size={22}
+                    className="animate-spin"
+                  />
+                ) : (
+                  stats?.totalLuckyDrawEvents ?? 0
+                )}
+
+              </h3>
+
+            </div>
+
+            {/* Bidding Users */}
+            <div className="rounded-xl bg-white p-5 shadow-sm">
+
+              <div className="flex items-center justify-between">
+
                 <div className="rounded-lg bg-green-100 p-3 text-green-600">
-                  <DollarSign size={22} />
+                  <Users size={22} />
                 </div>
 
-                <span className="text-sm text-green-600">
-                  +15.4%
-                </span>
               </div>
 
               <p className="mt-4 text-sm text-gray-500">
-                Total Revenue
+                Bidding Users
               </p>
 
-              <h3 className="mt-1 text-2xl font-bold">
-                ₹2,48,500
+              <h3 className="mt-1 text-2xl font-bold text-gray-800">
+
+                {loadingStats ? (
+                  <Loader2
+                    size={22}
+                    className="animate-spin"
+                  />
+                ) : (
+                  stats?.totalBiddingUsers ?? 0
+                )}
+
               </h3>
+
             </div>
 
-            {/* Active Bids */}
+            {/* Payments */}
             <div className="rounded-xl bg-white p-5 shadow-sm">
+
               <div className="flex items-center justify-between">
+
                 <div className="rounded-lg bg-orange-100 p-3 text-orange-600">
-                  <Clock size={22} />
+                  <CreditCard size={22} />
                 </div>
 
-                <span className="text-sm text-green-600">
-                  +6.8%
-                </span>
               </div>
 
               <p className="mt-4 text-sm text-gray-500">
-                Active Bids
+                Total Payments
               </p>
 
-              <h3 className="mt-1 text-2xl font-bold">
-                89
+              <h3 className="mt-1 text-2xl font-bold text-gray-800">
+
+                {loadingStats ? (
+                  <Loader2
+                    size={22}
+                    className="animate-spin"
+                  />
+                ) : (
+                  stats?.totalPayments ?? 0
+                )}
+
               </h3>
+
             </div>
 
           </div>
 
-          {/* Bottom Section */}
-          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          {/* =================================================
+              QUICK ACCESS
+          ================================================== */}
 
-            {/* Recent Auctions */}
-            <div className="rounded-xl bg-white p-6 shadow-sm lg:col-span-2">
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
 
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">
-                  Recent Auctions
-                </h3>
-
-                <button className="text-sm text-blue-600 hover:underline">
-                  View All
-                </button>
-              </div>
-
-              <div className="mt-5 overflow-x-auto">
-
-                <table className="w-full text-left text-sm">
-
-                  <thead>
-                    <tr className="border-b text-gray-500">
-                      <th className="pb-3">Auction</th>
-                      <th className="pb-3">Seller</th>
-                      <th className="pb-3">Bids</th>
-                      <th className="pb-3">Status</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-
-                    <tr className="border-b">
-                      <td className="py-4 font-medium">
-                        iPhone 15 Pro
-                      </td>
-
-                      <td className="py-4">
-                        Mani
-                      </td>
-
-                      <td className="py-4">
-                        24
-                      </td>
-
-                      <td className="py-4">
-                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700">
-                          Active
-                        </span>
-                      </td>
-                    </tr>
-
-                    <tr className="border-b">
-                      <td className="py-4 font-medium">
-                        MacBook Pro
-                      </td>
-
-                      <td className="py-4">
-                        Kumar
-                      </td>
-
-                      <td className="py-4">
-                        18
-                      </td>
-
-                      <td className="py-4">
-                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700">
-                          Active
-                        </span>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="py-4 font-medium">
-                        Sony Camera
-                      </td>
-
-                      <td className="py-4">
-                        Arun
-                      </td>
-
-                      <td className="py-4">
-                        31
-                      </td>
-
-                      <td className="py-4">
-                        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
-                          Completed
-                        </span>
-                      </td>
-                    </tr>
-
-                  </tbody>
-
-                </table>
-
-              </div>
-            </div>
-
-            {/* Recent Activity */}
+            {/* Bidding */}
             <div className="rounded-xl bg-white p-6 shadow-sm">
 
-              <h3 className="text-lg font-semibold">
-                Recent Activity
-              </h3>
+              <div className="flex items-center gap-4">
 
-              <div className="mt-5 space-y-5">
-
-                <div className="flex gap-3">
-                  <div className="h-9 w-9 rounded-full bg-blue-100 text-center pt-2 text-blue-600">
-                    +
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">
-                      New user registered
-                    </p>
-
-                    <p className="text-xs text-gray-500">
-                      5 minutes ago
-                    </p>
-                  </div>
+                <div className="rounded-lg bg-blue-100 p-3 text-blue-600">
+                  <Gavel size={24} />
                 </div>
 
-                <div className="flex gap-3">
-                  <div className="h-9 w-9 rounded-full bg-green-100 text-center pt-2 text-green-600">
-                    ₹
-                  </div>
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    Bidding
+                  </h3>
 
-                  <div>
-                    <p className="text-sm font-medium">
-                      Payment received
-                    </p>
-
-                    <p className="text-xs text-gray-500">
-                      20 minutes ago
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="h-9 w-9 rounded-full bg-purple-100 text-center pt-2 text-purple-600">
-                    ⚡
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">
-                      New auction created
-                    </p>
-
-                    <p className="text-xs text-gray-500">
-                      1 hour ago
-                    </p>
-                  </div>
+                  <p className="text-sm text-gray-500">
+                    Manage bids, rounds, users and payments.
+                  </p>
                 </div>
 
               </div>
+
+              <button
+                onClick={() => {
+                  setBiddingOpen(true);
+                  router.push("/dashboard/bidding");
+                }}
+                className="mt-5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Manage Bidding
+              </button>
+
+            </div>
+
+            {/* Lucky Draw */}
+            <div className="rounded-xl bg-white p-6 shadow-sm">
+
+              <div className="flex items-center gap-4">
+
+                <div className="rounded-lg bg-purple-100 p-3 text-purple-600">
+                  <Ticket size={24} />
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    Lucky Draw
+                  </h3>
+
+                  <p className="text-sm text-gray-500">
+                    Manage lucky draw events and images.
+                  </p>
+                </div>
+
+              </div>
+
+              <button
+                onClick={() => {
+                  setLuckyDrawOpen(true);
+                  router.push("/dashboard/lucky-draw");
+                }}
+                className="mt-5 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+              >
+                Manage Lucky Draw
+              </button>
 
             </div>
 
           </div>
 
         </section>
+
       </main>
+
     </div>
   );
 }
