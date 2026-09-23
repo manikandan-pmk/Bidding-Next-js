@@ -1,11 +1,22 @@
 import { Admin } from "@/entities/admin";
 import { User } from "@/entities/user";
+import { LuckyDraw } from "@/entities/luckydraw";
+import {DrawParticipant} from "@/entities/drawParticipant"
 import dbConnect from "@/lib/database";
 
-if (!dbConnect.isInitialized) {
-    await dbConnect.initialize();
+declare global {
+  var __dbConnection: typeof dbConnect | undefined;
 }
 
-export const AdminRepo = dbConnect.getRepository(Admin)
+const connection = globalThis.__dbConnection ?? dbConnect;
 
-export const UserRepo = dbConnect.getRepository(User);
+if (!connection.isInitialized) {
+  await connection.initialize();
+}
+
+globalThis.__dbConnection = connection;
+
+export const AdminRepo = connection.getRepository(Admin);
+export const UserRepo = connection.getRepository(User);
+export const LuckyDrawRepo = connection.getRepository(LuckyDraw);
+export const DrawParticipantRepo = connection.getRepository(DrawParticipant)

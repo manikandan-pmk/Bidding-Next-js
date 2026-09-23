@@ -1,4 +1,4 @@
- import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const PUBLIC_PATHS = [
@@ -8,6 +8,8 @@ const PUBLIC_PATHS = [
   "/api/v1/user/auth/login",
 ];
 
+const PUBLIC_PREFIX_PATHS = ["/api/v1/lucky-draw/participants/"];
+
 const origin = process.env.ALLOWED_ORIGIN!;
 
 function setCorsHeaders(response: NextResponse) {
@@ -15,11 +17,11 @@ function setCorsHeaders(response: NextResponse) {
   response.headers.set("Access-Control-Allow-Credentials", "true");
   response.headers.set(
     "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS",
   );
   response.headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
+    "Content-Type, Authorization",
   );
   return response;
 }
@@ -32,16 +34,22 @@ export async function middleware(req: NextRequest) {
   try {
     const { pathname } = req.nextUrl;
 
-    const isPublicPath = PUBLIC_PATHS.some((path) =>
-      pathname.startsWith(path)
+    // Exact public paths
+    const isPublicPath = PUBLIC_PATHS.includes(pathname);
+
+    // Dynamic public paths
+    const isPublicPrefixPath = PUBLIC_PREFIX_PATHS.some((path) =>
+      pathname.startsWith(path),
     );
 
-    if (isPublicPath) {
+    if (isPublicPath || isPublicPrefixPath) {
       return setCorsHeaders(NextResponse.next());
     }
 
     const isAdminRoute = pathname.startsWith("/api/v1/admin");
-    const isUserRoute = pathname.startsWith("/api/v1/user");
+    const isUserRoute =
+      pathname.startsWith("/api/v1/user") ||
+      pathname.startsWith("/api/v1/lucky-draw");
 
     if (!isAdminRoute && !isUserRoute) {
       return setCorsHeaders(NextResponse.next());
@@ -54,8 +62,8 @@ export async function middleware(req: NextRequest) {
       return setCorsHeaders(
         NextResponse.json(
           { error: true, message: "Token not found" },
-          { status: 401 }
-        )
+          { status: 401 },
+        ),
       );
     }
 
@@ -65,8 +73,8 @@ export async function middleware(req: NextRequest) {
       return setCorsHeaders(
         NextResponse.json(
           { error: true, message: "JWT_SECRET not configured" },
-          { status: 500 }
-        )
+          { status: 500 },
+        ),
       );
     }
 
@@ -83,7 +91,7 @@ export async function middleware(req: NextRequest) {
           email: payload.email,
           name: payload.name,
           role: payload.role,
-        })
+        }),
       );
     }
 
@@ -95,7 +103,7 @@ export async function middleware(req: NextRequest) {
           email: payload.email,
           name: payload.name,
           role: payload.role,
-        })
+        }),
       );
     }
 
@@ -110,8 +118,8 @@ export async function middleware(req: NextRequest) {
     return setCorsHeaders(
       NextResponse.json(
         { error: true, message: "Invalid or expired token" },
-        { status: 401 }
-      )
+        { status: 401 },
+      ),
     );
   }
 }
