@@ -4,6 +4,8 @@ import { Admin } from "@/entities/admin";
 import { User } from "@/entities/user";
 import { LuckyDraw } from "@/entities/luckydraw";
 import { DrawParticipant } from "@/entities/drawParticipant";
+import { DrawPayments } from "@/entities/drawPayment";
+import { DrawWinner } from "@/entities/drawWinner";
 
 const dbConnect = new DataSource({
   type: "mysql",
@@ -13,7 +15,7 @@ const dbConnect = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
 
-  entities: [Admin, User, LuckyDraw, DrawParticipant],
+  entities: [Admin, User, LuckyDraw, DrawParticipant , DrawPayments , DrawWinner],
 
   synchronize: true,
   logging: true,

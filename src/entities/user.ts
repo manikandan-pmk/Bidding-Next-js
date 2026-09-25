@@ -3,6 +3,8 @@ import {
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from "typeorm";
 
 @Entity()
@@ -21,4 +23,14 @@ export class User {
 
   @OneToMany("LuckyDraw", "user")
   luckyDraws!: any[];
+
+  @CreateDateColumn({
+    type: "datetime",
+  })
+  createdAt!: Date;
+
+  @UpdateDateColumn({
+    type: "datetime",
+  })
+  updatedAt!: Date;
 }

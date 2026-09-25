@@ -3,6 +3,8 @@ import {
   Column,
   Entity,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from "typeorm";
 
 @Entity()
@@ -11,7 +13,7 @@ export class Admin {
   id!: string;
 
   @Column()
-  name!:string
+  name!: string;
 
   @Column({ unique: true })
   email!: string;
@@ -21,4 +23,14 @@ export class Admin {
 
   @Column({ default: "admin" })
   role!: string;
+
+  @CreateDateColumn({
+    type: "datetime",
+  })
+  createdAt!: Date;
+
+  @UpdateDateColumn({
+    type: "datetime",
+  })
+  updatedAt!: Date;
 }

@@ -4,7 +4,7 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
-  OneToMany,
+  OneToMany,CreateDateColumn , UpdateDateColumn
 } from "typeorm";
 
 export enum DurationUnit {
@@ -49,6 +49,19 @@ export class LuckyDraw {
   })
   user!: any;
 
-  @OneToMany("DrawParticipant","draw")
-  participants!:any[]
+  @OneToMany("DrawParticipant", "draw")
+  participants!: any[];
+
+  @OneToMany("DrawWinner", "draw")
+  winners!: any[];
+
+  @CreateDateColumn({
+    type: "datetime",
+  })
+  createdAt!: Date;
+
+  @UpdateDateColumn({
+    type: "datetime",
+  })
+  updatedAt!: Date;
 }

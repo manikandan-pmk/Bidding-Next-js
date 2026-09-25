@@ -3,6 +3,8 @@ import { User } from "@/entities/user";
 import { LuckyDraw } from "@/entities/luckydraw";
 import {DrawParticipant} from "@/entities/drawParticipant"
 import dbConnect from "@/lib/database";
+import { DrawPayments } from "@/entities/drawPayment";
+import { DrawWinner } from "@/entities/drawWinner";
 
 declare global {
   var __dbConnection: typeof dbConnect | undefined;
@@ -20,3 +22,5 @@ export const AdminRepo = connection.getRepository(Admin);
 export const UserRepo = connection.getRepository(User);
 export const LuckyDrawRepo = connection.getRepository(LuckyDraw);
 export const DrawParticipantRepo = connection.getRepository(DrawParticipant)
+export const DrawPaymentsRepo = connection.getRepository(DrawPayments)
+export const DrawWinnerRepo = connection.getRepository(DrawWinner)
