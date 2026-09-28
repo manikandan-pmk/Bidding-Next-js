@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-const origin = process.env.ALLOWED_ORIGIN!;
+const origin = process.env.ALLOWED_ORIGIN! || "http://localhost:3000";
 
 function setCorsHeaders(response: NextResponse) {
   response.headers.set("Access-Control-Allow-Origin", origin);
@@ -9,12 +9,12 @@ function setCorsHeaders(response: NextResponse) {
 
   response.headers.set(
     "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS",
   );
 
   response.headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
+    "Content-Type, Authorization",
   );
 
   return response;
@@ -22,9 +22,7 @@ function setCorsHeaders(response: NextResponse) {
 
 export async function middleware(req: NextRequest) {
   if (req.method === "OPTIONS") {
-    return setCorsHeaders(
-      new NextResponse(null, { status: 204 })
-    );
+    return setCorsHeaders(new NextResponse(null, { status: 204 }));
   }
 
   try {
@@ -35,16 +33,19 @@ export async function middleware(req: NextRequest) {
       return setCorsHeaders(NextResponse.next());
     }
 
-   // LOGIN DOES NOT NEED TOKEN
-    if (pathname === "/api/v1/user/auth/login") {
+    // LOGIN DOES NOT NEED TOKEN
+    if (
+      pathname === "/api/v1/user/auth/login" ||
+      pathname === "/api/v1/admin/auth/login"
+    ) {
       return setCorsHeaders(NextResponse.next());
     }
-    
-    const isAdminRoute = pathname.startsWith("/api/v1/admin");
 
-    const cookieName = isAdminRoute
-      ? "token"
-      : "user_token";
+    const isAdminRoute =
+  pathname === "/api/v1/admin" ||
+  pathname.startsWith("/api/v1/admin/");
+
+    const cookieName = isAdminRoute ? "token" : "user_token";
 
     const token = req.cookies.get(cookieName)?.value;
 
@@ -55,8 +56,8 @@ export async function middleware(req: NextRequest) {
             error: true,
             message: "Token not found",
           },
-          { status: 401 }
-        )
+          { status: 401 },
+        ),
       );
     }
 
@@ -70,18 +71,15 @@ export async function middleware(req: NextRequest) {
             error: true,
             message: "JWT_SECRET not configured",
           },
-          { status: 500 }
-        )
+          { status: 500 },
+        ),
       );
     }
 
     // Verify JWT
     const secretKey = new TextEncoder().encode(secret);
 
-    const { payload } = await jwtVerify(
-      token,
-      secretKey
-    );
+    const { payload } = await jwtVerify(token, secretKey);
 
     // Create request headers
     const requestHeaders = new Headers(req.headers);
@@ -95,7 +93,7 @@ export async function middleware(req: NextRequest) {
           email: payload.email,
           name: payload.name,
           role: payload.role,
-        })
+        }),
       );
     }
 
@@ -108,7 +106,7 @@ export async function middleware(req: NextRequest) {
           email: payload.email,
           name: payload.name,
           role: payload.role,
-        })
+        }),
       );
     }
 
@@ -120,7 +118,6 @@ export async function middleware(req: NextRequest) {
     });
 
     return setCorsHeaders(response);
-
   } catch (err: any) {
     console.log("Middleware error:", err.message);
 
@@ -130,11 +127,10 @@ export async function middleware(req: NextRequest) {
           error: true,
           message: "Invalid or expired token",
         },
-        { status: 401 }
-      )
+        { status: 401 },
+      ),
     );
   }
 }
-
 
 export default middleware;

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DrawParticipantRepo, LuckyDrawRepo, UserRepo } from "@/lib/repository";
+import { DrawParticipantRepo, DrawWinnerRepo, LuckyDrawRepo, UserRepo } from "@/lib/repository";
 
 export const GET = async (
   req: NextRequest,
@@ -88,6 +88,17 @@ export const GET = async (
         },is_Verified:true
       }
     })
+
+    const winners = await DrawWinnerRepo.find({
+      where:{
+        draw:{
+          id:id
+        }
+      },relations:{
+        draw:true,
+        participant:true
+      }
+    })
     
 
     if (!luckyDraw) {
@@ -105,7 +116,8 @@ export const GET = async (
         error: false,
         message: "Lucky draw fetched successfully",
         data: luckyDraw,
-        verifiedParticipants
+        verifiedParticipants,
+        winners
       },
       { status: 200 }
     );
