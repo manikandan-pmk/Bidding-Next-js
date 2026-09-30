@@ -312,12 +312,12 @@ export default function Sidebar({
                 type="button"
                 onClick={() =>
                   router.push(
-                    "/dashboard/lucky-draw-winner"
+                    "/dashboard/lucky-draw/winners"
                   )
                 }
                 className={`${childItem} ${
                   pathname ===
-                  "/dashboard/lucky-draw-winner"
+                  "/dashboard/lucky-draw/winners"
                     ? "bg-gray-800 text-white"
                     : ""
                 }`}

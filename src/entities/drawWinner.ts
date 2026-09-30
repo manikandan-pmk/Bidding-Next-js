@@ -4,12 +4,17 @@ import {
   ManyToOne,
   PrimaryColumn,
   JoinColumn,
-  CreateDateColumn , UpdateDateColumn
+  CreateDateColumn , UpdateDateColumn,
+  PrimaryGeneratedColumn
 } from "typeorm";
 
 @Entity()
 export class DrawWinner {
-  @PrimaryColumn()
+
+  @PrimaryGeneratedColumn("uuid")
+  id!:string
+
+  @Column()
   Cycle!: string;
 
   @Column({

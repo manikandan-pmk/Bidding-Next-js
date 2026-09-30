@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Trash2,
-  Eye,
   CheckCircle,
   XCircle,
   Trophy,
@@ -53,9 +52,10 @@ export default function LuckyDrawParticipantsPage() {
       setLoading(true);
 
       const response = await axios.get(
-        "/api/v1/admin/lucky-draw/participants",{
-            withCredentials:true
-        }
+        "/api/v1/admin/lucky-draw/participants",
+        {
+          withCredentials: true,
+        },
       );
 
       const result = await response.data;
@@ -91,12 +91,12 @@ export default function LuckyDrawParticipantsPage() {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredParticipants.length / itemsPerPage)
+    Math.ceil(filteredParticipants.length / itemsPerPage),
   );
 
   const paginatedParticipants = filteredParticipants.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   useEffect(() => {
@@ -108,7 +108,7 @@ export default function LuckyDrawParticipantsPage() {
   const allSelected =
     paginatedParticipants.length > 0 &&
     paginatedParticipants.every((participant) =>
-      selectedIds.includes(participant.id)
+      selectedIds.includes(participant.id),
     );
 
   const toggleSelectAll = () => {
@@ -116,18 +116,14 @@ export default function LuckyDrawParticipantsPage() {
       setSelectedIds((previous) =>
         previous.filter(
           (id) =>
-            !paginatedParticipants.some(
-              (participant) => participant.id === id
-            )
-        )
+            !paginatedParticipants.some((participant) => participant.id === id),
+        ),
       );
     } else {
       setSelectedIds((previous) => [
         ...new Set([
           ...previous,
-          ...paginatedParticipants.map(
-            (participant) => participant.id
-          ),
+          ...paginatedParticipants.map((participant) => participant.id),
         ]),
       ]);
     }
@@ -137,7 +133,7 @@ export default function LuckyDrawParticipantsPage() {
     setSelectedIds((previous) =>
       previous.includes(id)
         ? previous.filter((item) => item !== id)
-        : [...previous, id]
+        : [...previous, id],
     );
   };
 
@@ -147,7 +143,7 @@ export default function LuckyDrawParticipantsPage() {
     }
 
     const confirmed = window.confirm(
-      `Delete ${selectedIds.length} selected participant(s)?`
+      `Delete ${selectedIds.length} selected participant(s)?`,
     );
 
     if (!confirmed) {
@@ -155,26 +151,21 @@ export default function LuckyDrawParticipantsPage() {
     }
 
     try {
-      const response = await fetch(
-        "/api/lucky-draw/participants",
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            ids: selectedIds,
-          }),
-        }
-      );
+      const response = await fetch("/api/lucky-draw/participants", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          ids: selectedIds,
+        }),
+      });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          result.message || "Failed to delete participants"
-        );
+        throw new Error(result.message || "Failed to delete participants");
       }
 
       setSelectedIds([]);
@@ -184,14 +175,12 @@ export default function LuckyDrawParticipantsPage() {
       alert(
         error instanceof Error
           ? error.message
-          : "Failed to delete participants"
+          : "Failed to delete participants",
       );
     }
   };
 
-  const updateVerification = async (
-    participant: Participant
-  ) => {
+  const updateVerification = async (participant: Participant) => {
     try {
       const response = await fetch(
         `/api/lucky-draw/participants/${participant.id}`,
@@ -204,15 +193,13 @@ export default function LuckyDrawParticipantsPage() {
           body: JSON.stringify({
             is_Verified: !participant.is_Verified,
           }),
-        }
+        },
       );
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          result.message || "Failed to update participant"
-        );
+        throw new Error(result.message || "Failed to update participant");
       }
 
       setParticipants((previous) =>
@@ -222,16 +209,14 @@ export default function LuckyDrawParticipantsPage() {
                 ...item,
                 is_Verified: !item.is_Verified,
               }
-            : item
-        )
+            : item,
+        ),
       );
     } catch (error) {
       console.error("Verification update error:", error);
 
       alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to update participant"
+        error instanceof Error ? error.message : "Failed to update participant",
       );
     }
   };
@@ -292,12 +277,8 @@ export default function LuckyDrawParticipantsPage() {
               }`}
             >
               <Trash2 size={16} />
-
               Delete
-
-              {selectedIds.length > 0 && (
-                <span>({selectedIds.length})</span>
-              )}
+              {selectedIds.length > 0 && <span>({selectedIds.length})</span>}
             </button>
           </div>
 
@@ -357,10 +338,7 @@ export default function LuckyDrawParticipantsPage() {
                   </tr>
                 ) : paginatedParticipants.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={8}
-                      className="px-6 py-16 text-center"
-                    >
+                    <td colSpan={8} className="px-6 py-16 text-center">
                       <div className="text-sm font-medium text-[#475569]">
                         No participants found
                       </div>
@@ -375,17 +353,16 @@ export default function LuckyDrawParticipantsPage() {
                     <tr
                       key={participant.id}
                       className="border-b border-[#edf0f4] transition hover:bg-[#fafbff]"
+                      onClick={() =>
+                        (window.location.href = `/dashboard/lucky-draw/participants/${participant.id}`)
+                      }
                     >
                       {/* Checkbox */}
                       <td className="px-5 py-4">
                         <input
                           type="checkbox"
-                          checked={selectedIds.includes(
-                            participant.id
-                          )}
-                          onChange={() =>
-                            toggleParticipant(participant.id)
-                          }
+                          checked={selectedIds.includes(participant.id)}
+                          onChange={() => toggleParticipant(participant.id)}
                           className="h-4 w-4 rounded border-gray-300"
                         />
                       </td>
@@ -457,9 +434,7 @@ export default function LuckyDrawParticipantsPage() {
                             Winner
                           </span>
                         ) : (
-                          <span className="text-xs text-[#94a3b8]">
-                            -
-                          </span>
+                          <span className="text-xs text-[#94a3b8]">-</span>
                         )}
                       </td>
 
@@ -467,33 +442,17 @@ export default function LuckyDrawParticipantsPage() {
                       <td className="px-4 py-4">
                         <div className="flex justify-end gap-2">
                           <button
-                            title="View participant"
-                            onClick={() => {
-                              window.location.href = `/dashboard/lucky-draw/participants/${participant.id}`;
-                            }}
-                            className="flex h-8 w-8 items-center justify-center rounded-md border border-[#e2e8f0] text-[#64748b] transition hover:bg-[#f8fafc] hover:text-[#4f46e5]"
-                          >
-                            <Eye size={15} />
-                          </button>
-
-                          <button
                             title={
-                              participant.is_Verified
-                                ? "Unverify"
-                                : "Verify"
+                              participant.is_Verified ? "Unverify" : "Verify"
                             }
-                            onClick={() =>
-                              updateVerification(participant)
-                            }
+                            onClick={() => updateVerification(participant)}
                             className={`rounded-md px-3 py-1.5 text-xs font-medium ${
                               participant.is_Verified
                                 ? "border border-red-200 text-red-500 hover:bg-red-50"
                                 : "bg-[#4f46e5] text-white hover:bg-[#4338ca]"
                             }`}
                           >
-                            {participant.is_Verified
-                              ? "Unverify"
-                              : "Verify"}
+                            {participant.is_Verified ? "Unverify" : "Verify"}
                           </button>
                         </div>
                       </td>
@@ -517,7 +476,7 @@ export default function LuckyDrawParticipantsPage() {
               <span className="font-medium text-[#334155]">
                 {Math.min(
                   currentPage * itemsPerPage,
-                  filteredParticipants.length
+                  filteredParticipants.length,
                 )}
               </span>{" "}
               of{" "}
@@ -540,11 +499,7 @@ export default function LuckyDrawParticipantsPage() {
               {/* Previous */}
               <button
                 disabled={currentPage === 1}
-                onClick={() =>
-                  setCurrentPage((page) =>
-                    Math.max(1, page - 1)
-                  )
-                }
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#d9dee7] text-[#64748b] disabled:cursor-not-allowed disabled:opacity-40 hover:bg-[#f8fafc]"
               >
                 <ChevronLeft size={16} />
@@ -559,9 +514,7 @@ export default function LuckyDrawParticipantsPage() {
               <button
                 disabled={currentPage === totalPages}
                 onClick={() =>
-                  setCurrentPage((page) =>
-                    Math.min(totalPages, page + 1)
-                  )
+                  setCurrentPage((page) => Math.min(totalPages, page + 1))
                 }
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#d9dee7] text-[#64748b] disabled:cursor-not-allowed disabled:opacity-40 hover:bg-[#f8fafc]"
               >
