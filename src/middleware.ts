@@ -36,7 +36,9 @@ export async function middleware(req: NextRequest) {
     // LOGIN DOES NOT NEED TOKEN
     if (
       pathname === "/api/v1/user/auth/login" ||
-      pathname === "/api/v1/admin/auth/login"
+      pathname === "/api/v1/admin/auth/login" ||
+      pathname === "/api/v1/user/auth/register" ||
+      pathname === "/api/v1/admin/auth/register"
     ) {
       return setCorsHeaders(NextResponse.next());
     }
